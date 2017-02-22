@@ -2,7 +2,6 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Inbox, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import akka.actor.Props
 
@@ -57,8 +56,5 @@ object ActorAkka extends App {
 
   import scala.concurrent.ExecutionContext.Implicits.global
   msgAsk.map(println)
-
-  val actorDispatcher = system.actorOf(Props[PrimerActor].withDispatcher("ThreadPool-dispatcher"), "PrimerActorDispatcher")
-  println(actorDispatcher)
 
 }

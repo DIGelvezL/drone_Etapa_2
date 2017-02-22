@@ -27,6 +27,6 @@ class HelloAkkaSpec(_system: ActorSystem)
     val greeter = system.actorOf(Props[Greeter], "greeter")
     greeter ! WhoToGreet("testkit")
     greeter ! Greet
-    expectMsgType[Greeting].message.toString should be("hello, testkit")
+    expectMsgType[Greeting].message.toString should be("hello, testkit - prueba")
   }
 }
