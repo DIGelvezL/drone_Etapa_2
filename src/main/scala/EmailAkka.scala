@@ -1,12 +1,7 @@
-import akka.actor.{Actor, ActorSystem, AllForOneStrategy, OneForOneStrategy, Props}
-import akka.actor.SupervisorStrategy._
-import akka.pattern.ask
+import akka.actor.{ActorSystem, Props}
 import akka.util.Timeout
 
 import scala.concurrent.duration._
-import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 /**
   * Created by daniel on 23/02/17.
@@ -15,7 +10,6 @@ import scala.concurrent.Future
 case class MensajeEnviado(id:String, to:String, asunto:String, msg: String)
 case class MensajeRecibido(id:String, from:String, asunto:String, msg: String)
 case class ConsultarMail(mail:String)
-//case class MensajeCrearUsuario(msg:String)
 case class ErrorEnviarMensaje(mail:String)
 case class CrearMail(mail:String)
 case class ValidarCorreos(id:String, to:String)
@@ -29,6 +23,7 @@ object EmailAkka extends App {
 
   usuario ! CrearMail("daniel@seven4n.com")
   usuario ! CrearMail("daniel@seven4n.com")
+  usuario ! CrearMail("daniel@seven.com")
   usuario ! CrearMail("ivan@seven4n.com")
   usuario ! CrearMail("gelvez@seven4n.com")
 

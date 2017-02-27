@@ -1,12 +1,10 @@
-import akka.actor.{Actor, ActorSystem, AllForOneStrategy, OneForOneStrategy, Props}
-import akka.actor.SupervisorStrategy._
+import akka.actor.{Actor, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 
 import scala.concurrent.duration._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -30,9 +28,11 @@ class Usuario extends Actor {
       implicit val t = Timeout(5.second)
       val originalSender = sender()
       val validar = server ? ValidarCorreos(id, to)
-
-      Listas.listMailEnv += MensajeEnviado(id, to, asunto, msg)
-      server ! MensajeEnviado(id, to, asunto, msg)
+      validar.foreach(x =>
+        if(x.asInstanceOf[String].isEmpty) {
+          Listas.listMailEnv += MensajeEnviado(id, to, asunto, msg)
+          server ! MensajeEnviado(id, to, asunto, msg)
+        }else println(x))
     }
     case MensajeRecibido(to, id, asunto, msg) => {
       Listas.listMailRec += MensajeRecibido(to, id, asunto, msg)
@@ -42,13 +42,8 @@ class Usuario extends Actor {
       val originalSender = sender()
       val fut = server ? ConsultarMail(m)
       fut.map(x => x.asInstanceOf[mutable.MutableList[MensajeRecibido]].map(y => listBuzon += y))
-      //fut.foreach(x => println(x))
       Thread.sleep(1000)
       listBuzon.map(x => println(s"Correo enviado por ${x.from} - asunto: ${x.asunto} - mensaje: ${x.msg}"))
-      //listBuzon -= MensajeRecibido("ivan@seven4n.com", "daniel@seven4n.com", "probando", "Este es un correo de prueba... xD")
-      /*listBuzon.filter(x => x.from == "daniel@seven4n.com").remove(0, 1)
-      Thread.sleep(5000)
-      listBuzon.map(x => println("borrado: " + x))*/
     }
     case CrearMail(mail) => {
       implicit val t = Timeout(1.second)

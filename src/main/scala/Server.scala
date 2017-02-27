@@ -1,12 +1,8 @@
-import akka.actor.{Actor, ActorSystem, AllForOneStrategy, OneForOneStrategy, Props}
+import akka.actor.{Actor, OneForOneStrategy, Props}
 import akka.actor.SupervisorStrategy._
-import akka.pattern.ask
-import akka.util.Timeout
 
-import scala.concurrent.duration._
+
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 
 /**
@@ -15,7 +11,6 @@ import scala.concurrent.Future
 
 class Server extends Actor {
   import Listas._
-  var msjRespuesta = ""
 
   override def supervisorStrategy = OneForOneStrategy() {
     case _: Exception => Resume
@@ -26,38 +21,20 @@ class Server extends Actor {
   def receive = {
     case MensajeEnviado(id, to, asunto, msg) => {
       usuario ! MensajeRecibido(to, id, asunto, msg)
+      println("Se envío el correo a: " + to)
     }
     case ValidarCorreos(id, to) => {
-      if(Server.listCorreos.contains(id)) {
-        if(Server.listCorreos.contains(to)) {
-          sender() ! msjRespuesta = ""
-        }else{
-          msjRespuesta = s"No existe el correo $to al que se le va a enviar el mensaje"
-          sender() ! msjRespuesta
-        }
-      }else{
-        msjRespuesta = s"No existe el correo $id quien es el que envia el mensaje"
-        sender() ! msjRespuesta
-      }
+      Server.existeCorreo(id).fold(l => Server.existeCorreo(to).fold(l2 => sender() ! "", r2 => sender() ! s"No existe el correo ${r2} al que se le va a enviar el mensaje"),
+        r => sender() ! s"No existe el correo $r quien es el que envia el mensaje")
     }
     case ConsultarMail(m) =>{
       println(s"El usuario $m tiene ${listMailRec.filter(x => x.id == m).size} correos que son: ")
       sender() ! listMailRec.filter(x => x.id == m)
     }
     case CrearMail(mail) => {
-      if(Server.validarCorreo(mail)){
-        if(!Server.listCorreos.contains(mail)) {
-          Server.listCorreos += mail
-          msjRespuesta = s"Se creó el usuario $mail!!"
-          sender() ! msjRespuesta
-        }else{
-          msjRespuesta = s"el usuario $mail ya existe!!"
-          sender() ! msjRespuesta
-        }
-      }else{
-        msjRespuesta = s"El usuario $mail no es valido, no se puede crear!!"
-        sender() ! msjRespuesta
-      }
+      val valiMail = Server.validarCorreo(mail)
+      valiMail.fold(l => sender() ! s"El usuario $l no es valido, no se puede crear!!",
+        r => Server.existeCorreo(r).fold(l2 => sender() ! s"el usuario ${l2} ya existe!!", r2 => (Server.listCorreos += r2, sender() ! s"Se creó el usuario ${r2}!!")))
     }
     case ErrorEnviarMensaje(mail) => usuario ! ErrorEnviarMensaje(mail)
   }
@@ -67,11 +44,18 @@ object Server {
   val mailList = List("seven4n", "gmail", "hotmail", "yahoo")
   val listCorreos: mutable.MutableList[String] = mutable.MutableList()
 
-  def validarCorreo(correo:String): Boolean = {
+  def validarCorreo(correo:String): Either[String, String] = {
     val co = correo.split("@")(1).split('.')(0)
     if(mailList.contains(co))
-      true
+      Right(correo)
     else
-      false
+      Left(correo)
+  }
+
+  def existeCorreo(correo:String): Either[String, String] = {
+    if(Server.listCorreos.contains(correo))
+      Left(correo)
+    else
+      Right(correo)
   }
 }
