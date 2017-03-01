@@ -7,6 +7,7 @@ import scala.util.Try
 
 object User extends App {
 
+  val dron = new Dron()
   val res = Try {Source.fromFile("/home/daniel/in.txt").getLines.toList}.recover{case e: Exception => "El archivo está mal!!"}
   res.map(l => Dron.iniciar(l.asInstanceOf[List[String]]))
 
