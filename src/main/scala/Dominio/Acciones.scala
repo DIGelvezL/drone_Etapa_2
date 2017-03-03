@@ -1,3 +1,6 @@
+package Dominio
+
+
 trait Acciones {
 
   def adelante(p: Posicion):Posicion = {
@@ -7,7 +10,6 @@ trait Acciones {
       case Sur => Posicion(p.x, (p.y - 1), p.direccion)
       case Occidente => Posicion((p.x - 1), p.y, p.direccion)
     }
-
   }
 
   def derecha(p: Posicion):Posicion = {
@@ -28,9 +30,9 @@ trait Acciones {
     }
   }
 
-  def stop() = {
-    val res = new Exception(s"Error: El Dron se paso de las ${Dron.dron.limitePositivo} cuadras limite")
-    Mensajes.msgError(res.getMessage)
+  def stop(limitePositivo: Int) = {
+    val res = new Exception(s"Error: El Dron se paso de las $limitePositivo cuadras limite")
+    //Mensajes.msgError(res.getMessage)
     throw res
   }
 }

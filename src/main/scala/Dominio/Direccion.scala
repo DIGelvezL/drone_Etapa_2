@@ -1,3 +1,5 @@
+package Dominio
+
 trait Direccion
 case object Norte  extends Direccion
 case object Oriente   extends Direccion
@@ -11,7 +13,7 @@ object Direccion {
       case "Oriente" => Oriente
       case "Sur" => Sur
       case "Occidente" => Occidente
-      case _ => Norte
+      case x => throw new IllegalArgumentException(s"No conozco la instruccion $x")
     }
   }
 }
